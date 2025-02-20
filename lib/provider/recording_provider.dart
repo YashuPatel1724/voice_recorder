@@ -1,34 +1,58 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:intl/intl.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:voice_recorder/Db%20Helper/db_services.dart';
 
 class VoiceRecording extends ChangeNotifier {
   FlutterSoundRecorder? recorder;
-  FlutterSoundPlayer? player;
+  final AudioPlayer audioPlayer = AudioPlayer();
+
   bool _isRecording = false;
   String? _isPlaying;
+  bool? playing;
   List _recordings = [];
   String? recordTime;
   String? recordDate;
   int recordDuration = 0;
   Timer? timer;
   TextEditingController titleController = TextEditingController();
+  int currentIndex = 0;
+
+  Duration duration = Duration.zero;
+  Duration position = Duration.zero;
 
   bool get isRecording => _isRecording;
-
   String? get isPlaying => _isPlaying;
-
   List get recordings => _recordings;
 
   VoiceRecording() {
     recorder = FlutterSoundRecorder();
-    player = FlutterSoundPlayer();
     initRecording();
+    initAudioPlayer();
+  }
+  //
+  void initAudioPlayer() {
+    audioPlayer.durationStream.listen((dur) {
+      duration = dur ?? Duration.zero;
+      notifyListeners();
+    });
+
+    audioPlayer.positionStream.listen((pos) {
+      position = pos;
+      notifyListeners();
+    });
+
+    audioPlayer.playerStateStream.listen((state) {
+      playing = state.playing;
+      notifyListeners();
+    });
+
   }
 
   Future<void> loadVoice() async {
@@ -39,23 +63,24 @@ class VoiceRecording extends ChangeNotifier {
   Future<void> initRecording() async {
     try {
       await recorder!.openRecorder();
-      await player!.openPlayer();
       await Permission.microphone.request();
       loadVoice();
     } catch (e) {
-      print("Error initializing : $e");
+      print("Error initializing: $e");
     }
   }
 
   Future<void> startRecording() async {
     final directory = await getApplicationDocumentsDirectory();
-    String filePath =
-        '${directory.path}/recording_${DateTime.now().millisecond}';
+    String filePath = '${directory.path}/recording_${DateTime.now().millisecondsSinceEpoch}.aac';
+
     try {
       await recorder!.startRecorder(toFile: filePath);
       _isRecording = true;
-      startTime();
+      recordDuration = 0;
+      position = Duration.zero;
       notifyListeners();
+      startTime();
     } catch (e) {
       print("Error starting: $e");
     }
@@ -65,6 +90,7 @@ class VoiceRecording extends ChangeNotifier {
     try {
       String? filePath = await recorder!.stopRecorder();
       stopTime();
+
       if (filePath != null) {
         showDialog(
           context: context,
@@ -93,6 +119,7 @@ class VoiceRecording extends ChangeNotifier {
                     recordDate = DateFormat('dd-MM-yyyy').format(now);
                     String duration =
                         "${(recordDuration ~/ 60).toString().padLeft(2, '0')}:${(recordDuration % 60).toString().padLeft(2, '0')}";
+
                     await DbServices.dbServices.addDataInDatabase(
                         filePath, title, recordDate!, recordTime!, duration);
                     await loadVoice();
@@ -114,21 +141,55 @@ class VoiceRecording extends ChangeNotifier {
 
   Future<void> playRecording(String filePath) async {
     if (_isPlaying == filePath) {
-      await player!.stopPlayer();
+      await audioPlayer.stop();
       _isPlaying = null;
     } else {
       if (_isPlaying != null) {
-        await player!.stopPlayer();
+        await audioPlayer.stop();
       }
-      _isPlaying = filePath;
-      await player!.startPlayer(
-        fromURI: filePath,
-        whenFinished: () {
-          _isPlaying = null;
-          notifyListeners();
-        },
-      );
+      if (File(filePath).existsSync()) {
+        _isPlaying = filePath;
+        await audioPlayer.setFilePath(filePath);
+        await audioPlayer.play();
+        audioPlayer.playerStateStream.listen((state) {
+          if (state.processingState == ProcessingState.completed) {
+            _isPlaying = null;
+            position = Duration.zero; // Reset position
+            notifyListeners();
+          }
+        });
+      }
     }
+    notifyListeners();
+  }
+
+
+  Future<void> seekAudio(double value) async {
+    await audioPlayer.seek(Duration(seconds: value.toInt()));
+    notifyListeners();
+  }
+
+  void nextPlay() {
+    if (currentIndex < _recordings.length - 1) {
+      currentIndex++;
+      position = Duration.zero;
+      playRecording(_recordings[currentIndex]['filePath']);
+    }
+    notifyListeners();
+  }
+
+  void previousPlay() {
+    if (currentIndex > 0) {
+      currentIndex--;
+      playRecording(_recordings[currentIndex]['filePath']);
+    }
+    notifyListeners();
+  }
+
+  void selectedAudio(int index) {
+    currentIndex = index;
+    position = Duration.zero;
+    playRecording(_recordings[currentIndex]['filePath']);
     notifyListeners();
   }
 
@@ -136,7 +197,7 @@ class VoiceRecording extends ChangeNotifier {
     recordDuration = 0;
     timer = Timer.periodic(
       Duration(seconds: 1),
-      (timer) {
+          (timer) {
         recordDuration++;
         notifyListeners();
       },
@@ -156,5 +217,14 @@ class VoiceRecording extends ChangeNotifier {
   Future<void> dataEdit({required String title, required int id}) async {
     await DbServices.dbServices.editDataFromDatabase(title, id);
     loadVoice();
+  }
+
+  String formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, "0");
+    return "${twoDigits(duration.inMinutes)}:${twoDigits(duration.inSeconds.remainder(60))}";
+  }
+  void resetPosition() {
+    position = Duration.zero;
+    notifyListeners();
   }
 }

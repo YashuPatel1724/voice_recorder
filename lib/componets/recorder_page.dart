@@ -19,13 +19,13 @@ Consumer<VoiceRecording> recorderPage() {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.blueAccent.withOpacity(0.5),
+                        color:  Color(0xff69308F).withOpacity(0.5),
                         blurRadius: 20,
                         spreadRadius: 0,
                         blurStyle: BlurStyle.outer
                       ),
                     ],
-                  color: Colors.blue
+                  color:  Color(0xff69308F),
                 ),
                 alignment: Alignment.center,
                 child: Text(
@@ -50,13 +50,13 @@ Consumer<VoiceRecording> recorderPage() {
                   decoration: BoxDecoration(
                     color: value.isRecording
                         ? Colors.red
-                        : Colors.blueAccent,
+                        :  Color(0xff69308F),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
                         color: value.isRecording
                             ? Colors.red
-                            : Colors.blueAccent.withOpacity(0.5),
+                            :  Color(0xff69308F).withOpacity(0.5),
                         blurRadius: 15,
                         spreadRadius: 5,
                       ),

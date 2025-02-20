@@ -12,7 +12,7 @@ class RecorderScreen extends StatelessWidget {
       length: 2,
       child: Scaffold(
           appBar: AppBar(
-            backgroundColor: Colors.blue,
+            backgroundColor: Color(0xff69308F),
             title: const Text('Voice Recorder',
                 style: TextStyle(
                     fontWeight: FontWeight.bold, color: Colors.white)),
