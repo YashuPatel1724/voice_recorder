@@ -102,6 +102,7 @@ Consumer<VoiceRecording> recorder_store() {
                   child: InkWell(
                     onTap: () {
                       value.selectedAudio(index);
+                      value.seekAudio(0);
                       Navigator.of(context).push(MaterialPageRoute(
                         builder: (context) => AudioPlayerScreen(),
                       ));

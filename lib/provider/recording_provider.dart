@@ -52,7 +52,6 @@ class VoiceRecording extends ChangeNotifier {
       playing = state.playing;
       notifyListeners();
     });
-
   }
 
   Future<void> loadVoice() async {
@@ -77,10 +76,8 @@ class VoiceRecording extends ChangeNotifier {
     try {
       await recorder!.startRecorder(toFile: filePath);
       _isRecording = true;
-      recordDuration = 0;
-      position = Duration.zero;
-      notifyListeners();
       startTime();
+      notifyListeners();
     } catch (e) {
       print("Error starting: $e");
     }
@@ -141,20 +138,26 @@ class VoiceRecording extends ChangeNotifier {
 
   Future<void> playRecording(String filePath) async {
     if (_isPlaying == filePath) {
-      await audioPlayer.stop();
-      _isPlaying = null;
+      if (audioPlayer.playing) {
+        await audioPlayer.pause();
+      } else {
+        await audioPlayer.play();
+      }
     } else {
       if (_isPlaying != null) {
         await audioPlayer.stop();
       }
       if (File(filePath).existsSync()) {
         _isPlaying = filePath;
+        notifyListeners();
+
         await audioPlayer.setFilePath(filePath);
         await audioPlayer.play();
+
+
         audioPlayer.playerStateStream.listen((state) {
           if (state.processingState == ProcessingState.completed) {
             _isPlaying = null;
-            position = Duration.zero; // Reset position
             notifyListeners();
           }
         });
@@ -164,15 +167,18 @@ class VoiceRecording extends ChangeNotifier {
   }
 
 
+
   Future<void> seekAudio(double value) async {
     await audioPlayer.seek(Duration(seconds: value.toInt()));
+    if (!audioPlayer.playing) {
+      await audioPlayer.play();
+    }
     notifyListeners();
   }
 
   void nextPlay() {
-    if (currentIndex < _recordings.length - 1) {
+    if (currentIndex < _recordings.length) {
       currentIndex++;
-      position = Duration.zero;
       playRecording(_recordings[currentIndex]['filePath']);
     }
     notifyListeners();
@@ -188,7 +194,6 @@ class VoiceRecording extends ChangeNotifier {
 
   void selectedAudio(int index) {
     currentIndex = index;
-    position = Duration.zero;
     playRecording(_recordings[currentIndex]['filePath']);
     notifyListeners();
   }
@@ -218,13 +223,9 @@ class VoiceRecording extends ChangeNotifier {
     await DbServices.dbServices.editDataFromDatabase(title, id);
     loadVoice();
   }
-
   String formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, "0");
     return "${twoDigits(duration.inMinutes)}:${twoDigits(duration.inSeconds.remainder(60))}";
   }
-  void resetPosition() {
-    position = Duration.zero;
-    notifyListeners();
-  }
+
 }

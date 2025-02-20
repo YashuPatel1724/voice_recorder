@@ -34,7 +34,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
           leading: InkWell(
               onTap: () async {
                 await provider.audioPlayer.stop();
-                provider.resetPosition();
+                // provider.resetPlayback();
                 Navigator.pop(context);
               },
               child: Icon(Icons.arrow_back,color: Colors.white,)),
@@ -90,9 +90,13 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                         height: 65,
                         width: 65,
                         decoration: BoxDecoration(
-                            color:  Color(0xff69308F), shape: BoxShape.circle),
+                          color: Color(0xff69308F),
+                          shape: BoxShape.circle,
+                        ),
                         child: Icon(
-                          isPlaying ? Icons.stop : Icons.play_arrow_rounded,
+                          provider.isPlaying == filePath && provider.audioPlayer.playing
+                              ? Icons.stop
+                              : Icons.play_arrow_rounded,  // Switch icon when playback stops
                           size: 45,
                           color: Colors.white,
                         ),
