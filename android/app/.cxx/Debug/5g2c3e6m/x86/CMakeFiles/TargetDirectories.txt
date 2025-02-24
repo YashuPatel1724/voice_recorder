@@ -1,0 +1,2 @@
+D:/Flutter Projects/voice_recorder/android/app/.cxx/Debug/5g2c3e6m/x86/CMakeFiles/edit_cache.dir
+D:/Flutter Projects/voice_recorder/android/app/.cxx/Debug/5g2c3e6m/x86/CMakeFiles/rebuild_cache.dir
