@@ -1,0 +1,1 @@
+D:\Flutter Projects\voice_recorder\build\app\intermediates\cxx\Debug\5g2c3e6m\obj\armeabi-v7a
