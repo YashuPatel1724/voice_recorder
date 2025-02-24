@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:intl/intl.dart';
@@ -23,6 +24,7 @@ class VoiceRecording extends ChangeNotifier {
   Timer? timer;
   TextEditingController titleController = TextEditingController();
   int currentIndex = 0;
+  final RecorderController waveController = RecorderController();
 
   Duration duration = Duration.zero;
   Duration position = Duration.zero;
@@ -36,7 +38,7 @@ class VoiceRecording extends ChangeNotifier {
     initRecording();
     initAudioPlayer();
   }
-  //
+
   void initAudioPlayer() {
     audioPlayer.durationStream.listen((dur) {
       duration = dur ?? Duration.zero;
@@ -59,6 +61,7 @@ class VoiceRecording extends ChangeNotifier {
     notifyListeners();
   }
 
+
   Future<void> initRecording() async {
     try {
       await recorder!.openRecorder();
@@ -79,15 +82,15 @@ class VoiceRecording extends ChangeNotifier {
       startTime();
       notifyListeners();
     } catch (e) {
-      print("Error starting: $e");
+      print("Error starting recording: $e");
     }
   }
 
   Future<void> stopRecording(BuildContext context) async {
     try {
+
       String? filePath = await recorder!.stopRecorder();
       stopTime();
-
       if (filePath != null) {
         showDialog(
           context: context,
@@ -101,22 +104,16 @@ class VoiceRecording extends ChangeNotifier {
               ),
               actions: [
                 TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
+                  onPressed: () => Navigator.pop(context),
                   child: const Text('Cancel'),
                 ),
                 TextButton(
                   onPressed: () async {
-                    String title = titleController.text.isEmpty
-                        ? 'Recording'
-                        : titleController.text;
+                    String title = titleController.text.isEmpty ? 'Recording' : titleController.text;
                     DateTime now = DateTime.now();
                     recordTime = DateFormat('hh:mm a').format(now);
                     recordDate = DateFormat('dd-MM-yyyy').format(now);
-                    String duration =
-                        "${(recordDuration ~/ 60).toString().padLeft(2, '0')}:${(recordDuration % 60).toString().padLeft(2, '0')}";
-
+                    String duration = "${(recordDuration ~/ 60).toString().padLeft(2, '0')}:${(recordDuration % 60).toString().padLeft(2, '0')}";
                     await DbServices.dbServices.addDataInDatabase(
                         filePath, title, recordDate!, recordTime!, duration);
                     await loadVoice();
@@ -132,9 +129,10 @@ class VoiceRecording extends ChangeNotifier {
       _isRecording = false;
       notifyListeners();
     } catch (e) {
-      print("Error stopping: $e");
+      print("Error stopping recording: $e");
     }
   }
+
 
   Future<void> playRecording(String filePath) async {
     if (_isPlaying == filePath) {

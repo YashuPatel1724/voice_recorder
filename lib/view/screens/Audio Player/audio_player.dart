@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:voice_recorder/Model/voice_model.dart';
 
+import '../../../constant/color_constant.dart';
 import '../../../provider/recording_provider.dart';
 
 class AudioPlayerScreen extends StatefulWidget {
@@ -29,7 +30,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor : Color(0xff69308F),
+          backgroundColor :primaryColor,
           title: Text("Audio Player",style: TextStyle(color: Colors.white),),
           leading: InkWell(
               onTap: () async {
@@ -57,7 +58,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                 Text(
                   selectedRecording.title,
                   style: TextStyle(
-                      color: Color(0xff69308F),
+                      color: primaryColor,
                       fontSize: 25,
                       fontWeight: FontWeight.bold),
                 ),
@@ -120,7 +121,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                 ),
                 SizedBox(height: 20,),
                 Slider(
-                  activeColor: Color(0xff69308F),
+                  activeColor: primaryColor,
                   min: 0,
                   max: maxDuration > 0 ? maxDuration : 1,
                   value: sliderValue.clamp(0, maxDuration),

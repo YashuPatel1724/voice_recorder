@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:voice_recorder/constant/color_constant.dart';
 
 import '../../../componets/recorder_page.dart';
 import '../../../componets/recorder_store.dart';
@@ -12,7 +13,7 @@ class RecorderScreen extends StatelessWidget {
       length: 2,
       child: Scaffold(
           appBar: AppBar(
-            backgroundColor: Color(0xff69308F),
+            backgroundColor: primaryColor,
             title: const Text('Voice Recorder',
                 style: TextStyle(
                     fontWeight: FontWeight.bold, color: Colors.white)),
@@ -38,7 +39,7 @@ class RecorderScreen extends StatelessWidget {
                 ]),
           ),
           body: TabBarView(physics: BouncingScrollPhysics(), children: [
-            recorderPage(),
+            RecorderPage(),
             recorder_store()
           ])),
     );

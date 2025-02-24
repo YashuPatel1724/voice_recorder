@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:voice_recorder/view/screens/Audio%20Player/audio_player.dart';
 
 import '../Model/voice_model.dart';
+import '../constant/color_constant.dart';
 import '../provider/recording_provider.dart';
 
 Consumer<VoiceRecording> recorder_store() {
@@ -128,7 +129,7 @@ Consumer<VoiceRecording> recorder_store() {
                         child: Row(
                           children: [
                             CircleAvatar(
-                              backgroundColor:  Color(0xff69308F),
+                              backgroundColor:  primaryColor,
                               child:
                                   Icon(Icons.audiotrack, color: Colors.white),
                             ),
